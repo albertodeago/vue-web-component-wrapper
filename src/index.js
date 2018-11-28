@@ -9,8 +9,10 @@ import {
   convertAttributeValue
 } from './utils.js'
 
-export default function wrap (Vue, Component) {
+export default function wrap (Vue, Component, options = {}) {
   const isAsync = typeof Component === 'function' && !Component.cid
+  const { useShadowDOM = true } = options
+  const { plugins = {}} = options
   let isInitialized = false
   let hyphenatedPropsList
   let camelizedPropsList
@@ -81,9 +83,8 @@ export default function wrap (Vue, Component) {
   class CustomElement extends HTMLElement {
     constructor () {
       const self = super()
-      self.attachShadow({ mode: 'open' })
-
-      const wrapper = self._wrapper = new Vue({
+      if (useShadowDOM) self.attachShadow({ mode: 'open' })
+      const wrapperItem = {
         name: 'shadow-root',
         customElement: self,
         shadowRoot: self.shadowRoot,
@@ -99,7 +100,8 @@ export default function wrap (Vue, Component) {
             props: this.props
           }, this.slotChildren)
         }
-      })
+      }
+      const wrapper = self._wrapper = new Vue(Object.assign(wrapperItem, plugins))
 
       // Use MutationObserver to react to future attribute & slot content change
       const observer = new MutationObserver(mutations => {
@@ -159,8 +161,13 @@ export default function wrap (Vue, Component) {
           wrapper.$createElement,
           this.childNodes
         ))
-        wrapper.$mount()
-        this.shadowRoot.appendChild(wrapper.$el)
+        window.setTimeout(
+          function () {
+            wrapper.$mount()
+            if (useShadowDOM) this.shadowRoot.appendChild(wrapper.$el)
+            else this.appendChild(wrapper.$el)
+          }.bind(this), 0
+        )
       } else {
         callHooks(this.vueComponent, 'activated')
       }
