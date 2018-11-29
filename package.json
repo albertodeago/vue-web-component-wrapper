@@ -28,13 +28,20 @@
   },
   "homepage": "https://github.com/vuejs/web-component-wrapper#readme",
   "devDependencies": {
+    "@babel/core": "^7.1.6",
+    "@babel/preset-env": "^7.0.0",
     "eslint": "^4.16.0",
     "eslint-plugin-vue-libs": "^2.1.0",
     "http-server": "^0.11.1",
     "jest": "^22.1.4",
     "lint-staged": "^6.1.0",
     "puppeteer": "^1.0.0",
-    "rollup": "^0.55.3",
+    "rollup": "^0.67.3",
+    "rollup-plugin-babel": "^4.0.3",
+    "rollup-plugin-commonjs": "^9.1.6",
+    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-terser": "^3.0.0",
+    "rollup-plugin-uglify": "^6.0.0",
     "vue": "^2.5.13",
     "yorkie": "^1.0.3"
   },
@@ -52,5 +59,8 @@
       "eslint --fix",
       "git add"
     ]
+  },
+  "dependencies": {
+    "@webcomponents/webcomponentsjs": "^2.2.1"
   }
 }

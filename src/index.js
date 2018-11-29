@@ -9,6 +9,7 @@ import {
   convertAttributeValue
 } from './utils.js'
 
+import '@webcomponents/webcomponentsjs'
 export default function wrap (Vue, Component, options = {}) {
   const isAsync = typeof Component === 'function' && !Component.cid
   const { useShadowDOM = true } = options
