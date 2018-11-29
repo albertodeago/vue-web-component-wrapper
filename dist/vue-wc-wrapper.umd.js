@@ -1,5 +1,8 @@
-var wrapVueWebComponent = (function () {
-  'use strict';
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global.vueWcWrapper = factory());
+}(this, (function () { 'use strict';
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -693,4 +696,4 @@ var wrapVueWebComponent = (function () {
 
   return wrap;
 
-}());
+})));

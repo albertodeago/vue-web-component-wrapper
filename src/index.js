@@ -9,6 +9,8 @@ import {
   convertAttributeValue
 } from './utils.js'
 
+import '@webcomponents/webcomponentsjs';
+
 export default function wrap (Vue, Component) {
   const isAsync = typeof Component === 'function' && !Component.cid
   let isInitialized = false
