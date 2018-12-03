@@ -1,5 +1,8 @@
-var wrapVueWebComponent = (function () {
-  'use strict';
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global.vueWcWrapper = factory());
+}(this, (function () { 'use strict';
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -508,12 +511,7 @@ var wrapVueWebComponent = (function () {
   "complete"!==document.readyState?(window.addEventListener("load",Fh),window.addEventListener("DOMContentLoaded",function(){window.removeEventListener("load",Fh);Fh();})):Fh();}).call(commonjsGlobal);
 
   function wrap(Vue, Component) {
-    var additionalOtions = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
     var isAsync = typeof Component === 'function' && !Component.cid;
-    var _additionalOtions$use = additionalOtions.useShadowDOM,
-        useShadowDOM = _additionalOtions$use === void 0 ? true : _additionalOtions$use;
-    var _additionalOtions$plu = additionalOtions.plugins,
-        plugins = _additionalOtions$plu === void 0 ? {} : _additionalOtions$plu;
     var isInitialized = false;
     var hyphenatedPropsList;
     var camelizedPropsList;
@@ -554,15 +552,6 @@ var wrapVueWebComponent = (function () {
         camelizedPropsList.forEach(function (key) {
           _this2.$root.props[key] = _this2[key];
         });
-      }); // Thron Component, on mounted use defIsReady promise:
-
-      injectHook(options, 'mounted', function () {
-        var _this3 = this;
-
-        // sync default props values to wrapper on created
-        this.defIsReady.promise.then(function () {
-          return _this3.$root.resolvedPromise(_this3.api);
-        });
       }); // proxy props as Element properties
 
       camelizedPropsList.forEach(function (key) {
@@ -592,20 +581,16 @@ var wrapVueWebComponent = (function () {
       _inherits(CustomElement, _HTMLElement);
 
       function CustomElement() {
-        var _this4;
+        var _this3;
 
         _classCallCheck(this, CustomElement);
 
-        var self = _this4 = _possibleConstructorReturn(this, _getPrototypeOf(CustomElement).call(this));
+        var self = _this3 = _possibleConstructorReturn(this, _getPrototypeOf(CustomElement).call(this));
 
-        var resolvedPromise = null;
-        _this4.ready = new Promise(function (r) {
-          resolvedPromise = r;
-        });
-        if (useShadowDOM) self.attachShadow({
+        self.attachShadow({
           mode: 'open'
         });
-        var wrapperItem = {
+        var wrapper = self._wrapper = new Vue({
           name: 'shadow-root',
           customElement: self,
           shadowRoot: self.shadowRoot,
@@ -621,10 +606,7 @@ var wrapVueWebComponent = (function () {
               props: this.props
             }, this.slotChildren);
           }
-        };
-        var wrapper = self._wrapper = new Vue(Object.assign(wrapperItem, plugins)); // Pass resolvedPromise to $root:
-
-        wrapper.resolvedPromise = resolvedPromise; // Use MutationObserver to react to future attribute & slot content change
+        }); // Use MutationObserver to react to future attribute & slot content change
 
         var observer = new MutationObserver(function (mutations) {
           var hasChildrenChange = false;
@@ -649,13 +631,13 @@ var wrapVueWebComponent = (function () {
           characterData: true,
           attributes: true
         });
-        return _this4;
+        return _this3;
       }
 
       _createClass(CustomElement, [{
         key: "connectedCallback",
         value: function connectedCallback() {
-          var _this5 = this;
+          var _this4 = this;
 
           var wrapper = this._wrapper;
 
@@ -664,7 +646,7 @@ var wrapVueWebComponent = (function () {
             var syncInitialAttributes = function syncInitialAttributes() {
               wrapper.props = getInitialProps(camelizedPropsList);
               hyphenatedPropsList.forEach(function (key) {
-                syncAttribute(_this5, key);
+                syncAttribute(_this4, key);
               });
             };
 
@@ -685,12 +667,7 @@ var wrapVueWebComponent = (function () {
 
             wrapper.slotChildren = Object.freeze(toVNodes(wrapper.$createElement, this.childNodes));
             wrapper.$mount();
-
-            if (useShadowDOM) {
-              this.shadowRoot.appendChild(wrapper.$el);
-            } else {
-              this.appendChild(wrapper.$el);
-            }
+            this.shadowRoot.appendChild(wrapper.$el);
           } else {
             callHooks(this.vueComponent, 'activated');
           }
@@ -719,4 +696,4 @@ var wrapVueWebComponent = (function () {
 
   return wrap;
 
-}());
+})));

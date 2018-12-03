@@ -10,10 +10,10 @@ import {
 } from './utils.js'
 
 import '@webcomponents/webcomponentsjs'
-export default function wrap (Vue, Component, options = {}) {
+export default function wrap (Vue, Component, additionalOtions = {}) {
   const isAsync = typeof Component === 'function' && !Component.cid
-  const { useShadowDOM = true } = options
-  const { plugins = {}} = options
+  const { useShadowDOM = true } = additionalOtions
+  const { plugins = {}} = additionalOtions
   let isInitialized = false
   let hyphenatedPropsList
   let camelizedPropsList
@@ -54,6 +54,12 @@ export default function wrap (Vue, Component, options = {}) {
       })
     })
 
+    // Thron Component, on mounted use defIsReady promise:
+    injectHook(options, 'mounted', function () {
+      // sync default props values to wrapper on created
+      this.defIsReady.promise.then(() => this.$root.resolvedPromise(this.api))
+    })
+
     // proxy props as Element properties
     camelizedPropsList.forEach(key => {
       Object.defineProperty(CustomElement.prototype, key, {
@@ -84,6 +90,8 @@ export default function wrap (Vue, Component, options = {}) {
   class CustomElement extends HTMLElement {
     constructor () {
       const self = super()
+      let resolvedPromise = null
+      this.ready = new Promise(r => { resolvedPromise = r })
       if (useShadowDOM) self.attachShadow({ mode: 'open' })
       const wrapperItem = {
         name: 'shadow-root',
@@ -103,6 +111,8 @@ export default function wrap (Vue, Component, options = {}) {
         }
       }
       const wrapper = self._wrapper = new Vue(Object.assign(wrapperItem, plugins))
+      // Pass resolvedPromise to $root:
+      wrapper.resolvedPromise = resolvedPromise
 
       // Use MutationObserver to react to future attribute & slot content change
       const observer = new MutationObserver(mutations => {
@@ -162,13 +172,12 @@ export default function wrap (Vue, Component, options = {}) {
           wrapper.$createElement,
           this.childNodes
         ))
-        window.setTimeout(
-          function () {
-            wrapper.$mount()
-            if (useShadowDOM) this.shadowRoot.appendChild(wrapper.$el)
-            else this.appendChild(wrapper.$el)
-          }.bind(this), 0
-        )
+        wrapper.$mount()
+        if (useShadowDOM) {
+          this.shadowRoot.appendChild(wrapper.$el)
+        } else {
+          this.appendChild(wrapper.$el)
+        }
       } else {
         callHooks(this.vueComponent, 'activated')
       }
